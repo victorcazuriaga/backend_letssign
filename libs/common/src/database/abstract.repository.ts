@@ -1,6 +1,7 @@
 import { Logger, NotFoundException } from '@nestjs/common';
 import {
   FilterQuery,
+  PopulateOptions,
   Model,
   Types,
   UpdateQuery,
@@ -30,38 +31,81 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
       await createdDocument.save(options)
     ).toJSON() as unknown as TDocument;
   }
-
+  async findOneIncludingPassword(
+    filterQuery: FilterQuery<TDocument>,
+  ): Promise<TDocument> {
+    const document = await this.model.findOne(filterQuery, {}, { lean: true });
+    if (!document) {
+      this.logger.warn('Document not found with filterQuery', filterQuery);
+      // // throw new NotFoundException('Document not found.');
+      return false as unknown as TDocument;
+    }
+    return document as unknown as TDocument;
+  }
   async findOne(
+    filterQuery: FilterQuery<TDocument>,
+    populateOptions?: PopulateOptions,
+  ): Promise<TDocument> {
+    const document = await this.model
+      .findOne(filterQuery, {}, { lean: true })
+      .select('-password');
+
+    if (populateOptions) {
+      await this.model.populate(document, populateOptions);
+    }
+
+    if (!document) {
+      this.logger.warn('Document not found with filterQuery', filterQuery);
+      // throw new NotFoundException('Document not found.');
+      return false as unknown as TDocument;
+    }
+    return document as unknown as TDocument;
+  }
+
+  async findOneAndUpdate(
     filterQuery: FilterQuery<TDocument>,
     update: UpdateQuery<TDocument>,
   ): Promise<TDocument> {
-    const document = await this.model.findOneAndUpdate(filterQuery, update, {
-      leans: true,
-      new: true,
-    });
+    const document = await this.model
+      .findOneAndUpdate(filterQuery, update, {
+        new: true,
+      })
+      .select('-password');
     if (!document) {
       this.logger.warn(`Document not found: ${JSON.stringify(filterQuery)}`);
       throw new NotFoundException();
     }
     return document;
   }
-  // eslint-disable-next-line @typescript-eslint/require-await
+
   async upsert(
     filterQuery: FilterQuery<TDocument>,
     document: Partial<TDocument>,
   ): Promise<TDocument | null> {
-    return this.model.findOneAndUpdate(filterQuery, document, {
+    return (await this.model.findOneAndUpdate(filterQuery, document, {
       lean: true,
       upsert: true,
       new: true,
-    }) as unknown as TDocument | null;
+    })) as unknown as TDocument | null;
+  }
+  async findOneAndDelete(
+    filterQuery: FilterQuery<TDocument>,
+  ): Promise<TDocument> {
+    const document = await this.model
+      .findOneAndDelete(filterQuery)
+      .select('-password');
+    if (!document) {
+      this.logger.warn(`Document not found: ${JSON.stringify(filterQuery)}`);
+      throw new NotFoundException();
+    }
+    return document;
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async find(filterQuery: FilterQuery<TDocument>): Promise<TDocument[]> {
-    return this.model
+    return (await this.model
       .find(filterQuery, {}, { lean: true })
-      .exec() as unknown as TDocument[];
+      .select('-password')
+      .exec()) as unknown as TDocument[];
   }
   async startTransaction(): Promise<ClientSession> {
     const session = await this.connection.startSession();
