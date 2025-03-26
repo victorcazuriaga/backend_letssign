@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bem-vindo ao LetsSign</title>
+  <style>
+    :root {
+      --primary-color: #5E60CE;
+      --secondary-color: #7400B8;
+      --background-color: #F6F8FB;
+      --text-color: #333;
+      --light-text: #fff;
+      --shadow-color: rgba(0, 0, 0, 0.15);
+      --card-bg: #fff;
+    }
+    
+    body {
+      font-family: 'Poppins', 'Helvetica', sans-serif;
+      background-color: #F6F8FB;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .email-header {
+      background: linear-gradient(to right, #7400B8, #5E60CE);
+      padding: 25px;
+      text-align: center;
+      color: #fff;
+    }
+    
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    
+    .email-body {
+      padding: 30px;
+      line-height: 1.6;
+    }
+    
+    .welcome-message {
+      font-size: 18px;
+      font-weight: 600;
+      color: #7400B8;
+      margin-bottom: 20px;
+    }
+    
+    .email-content {
+      margin-bottom: 25px;
+    }
+    
+    .btn-custom {
+      display: inline-block;
+      background-color: #5E60CE;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 30px;
+      font-weight: 600;
+      margin: 15px 0;
+      text-align: center;
+    }
+    
+    .email-footer {
+      background-color: #F6F8FB;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      border-top: 1px solid #ddd;
+    }
+    
+    .icon-large {
+      width: 70px;
+      height: auto;
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>LetsSign</h1>
+    </div>
+    
+    <div class="email-body">
+      <div class="welcome-message">Olá, <%= name %>!</div>
+      
+      <div class="email-content">
+        <p>Seja bem-vindo(a) ao <strong>LetsSign</strong>, sua plataforma segura para assinaturas digitais.</p>
+        
+        <p>Estamos felizes em tê-lo(a) conosco! Com o LetsSign, você pode:</p>
+        <ul>
+          <li>Assinar documentos de forma segura e legal</li>
+          <li>Verificar sua identidade com múltiplos fatores</li>
+          <li>Gerenciar todos os seus documentos em um só lugar</li>
+        </ul>
+        
+        <p>Para começar a usar nossa plataforma, acesse sua conta através do botão abaixo:</p>
+        
+        <div style="text-align: center;">
+          <a href="example.com"> <class="btn-custom">Acessar Minha Conta</a>
+        </div>
+        
+        <p>Se você tiver qualquer dúvida, nossa equipe de suporte está sempre disponível para ajudar.</p>
+        
+        <p>Atenciosamente,<br>Equipe LetsSign</p>
+      </div>
+    </div>
+    
+    <div class="email-footer">
+      <p>© <%= new Date().getFullYear() %> LetsSign - Todos os direitos reservados</p>
+      <p>Este é um e-mail automático, por favor não responda.</p>
+    </div>
+  </div>
+</body>
+</html>

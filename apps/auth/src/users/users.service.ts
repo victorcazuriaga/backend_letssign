@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Injectable,
+  Inject,
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -14,12 +15,18 @@ import { CompanyRepository } from './repositories/company.repository';
 import { UpdateUserRequest } from './dtos/update-user.request';
 import { GetUserResponse } from './dtos/get-user.response';
 import { CreateCompanyRequest } from './dtos/create-company.request';
+import { ClientProxy, EventPattern } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
+import { NOTIFICATION_SERVICE } from './constants/service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly companyRepository: CompanyRepository,
+    @Inject(NOTIFICATION_SERVICE)
+    private readonly notificationClient: ClientProxy,
+    // private readonly authClient: ClientProxy,
   ) {}
 
   async createUser(request: CreateUserRequest) {
@@ -31,10 +38,22 @@ export class UsersService {
       role: request.role || 'member',
       status: request.status || 'pending',
     });
+    // await lastValueFrom(
+    //   this.notificationClient.emit('user.created', {
+    //     request,
+    //   }),
+    // );
 
     Reflect.deleteProperty(user, 'password');
     return user;
   }
+
+  @EventPattern('user.created')
+  handleUserCreated(): void {
+    console.log(`Received user_created event with data:}`);
+    return;
+  }
+
   async createCompany(request: CreateCompanyRequest, userId: string) {
     const existingCompany = await this.companyRepository.findOne({
       cnpj: request.cnpj,
@@ -114,5 +133,13 @@ export class UsersService {
   async updateUser(userId, request: UpdateUserRequest) {
     const user = await this.usersRepository.findOneAndUpdate(userId, request);
     return user;
+  }
+  async testSendNotification(request): Promise<void> {
+    await lastValueFrom(
+      this.notificationClient.emit('user.created', {
+        email: request.email,
+        name: request.name,
+      }),
+    );
   }
 }
