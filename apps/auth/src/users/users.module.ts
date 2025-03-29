@@ -6,13 +6,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { CompanyRepository } from './repositories/company.repository';
 import { CompanySchema } from './schemas/company.schema';
-
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule, RmqModule } from '@app/common';
+import { NOTIFICATION_SERVICE } from './constants/service';
 @Module({
   imports: [
+    ConfigModule,
+    DatabaseModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: 'Company', schema: CompanySchema },
     ]),
+    RmqModule.register({ name: NOTIFICATION_SERVICE }),
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, CompanyRepository],

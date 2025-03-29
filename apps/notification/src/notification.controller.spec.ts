@@ -11,12 +11,11 @@ describe('NotificationController', () => {
       providers: [NotificationService],
     }).compile();
 
-    notificationController = app.get<NotificationController>(NotificationController);
-  });
-
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(notificationController.getHello()).toBe('Hello World!');
+    notificationController = app.get<NotificationController>(
+      NotificationController,
+    );
+    it('should be defined', () => {
+      expect(notificationController).toBeDefined();
     });
   });
 });

@@ -54,4 +54,8 @@ export class UsersController {
   async validateUser(@Body() request: CreateUserRequest): Promise<any> {
     return this.usersService.validateUser(request.email, request.password);
   }
+  @Post('test')
+  async test(@Body() request: { email: string; name: string }): Promise<any> {
+    return this.usersService.testSendNotification(request);
+  }
 }
