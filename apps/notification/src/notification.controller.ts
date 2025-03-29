@@ -26,14 +26,14 @@ export class NotificationController {
   }
   @EventPattern('reset.password')
   async handleResetPassword(
-    @Payload() data: { email: string },
+    @Payload() data: { email: string; otpCode: string },
     @Ctx() context: RmqContext,
   ): Promise<void> {
     await this.notificationService.sendNotification(
       data.email,
       'Reset Password',
       'reset-password',
-      { name: 'User' },
+      data,
     );
     this.rmqService.ack(context);
   }

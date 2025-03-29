@@ -52,6 +52,15 @@
         ],
         "watchAssets": true
       }
+    },
+    "otp": {
+      "type": "application",
+      "root": "apps/otp",
+      "entryFile": "main",
+      "sourceRoot": "apps/otp/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/otp/tsconfig.app.json"
+      }
     }
   }
 }

@@ -7,7 +7,6 @@ export class RmqService {
   constructor(private readonly configService: ConfigService) {}
 
   getOptions(queue: string, noAck = false): RmqOptions {
-    console.log('RmqService.getOptions', queue, noAck);
     return {
       transport: Transport.RMQ,
       options: {

@@ -1,15 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { NotificationModule } from './notification.module';
-import { RmqService } from '@app/common';
+import { OtpModule } from './otp.module';
 import { RmqOptions } from '@nestjs/microservices';
+import { RmqService } from '@app/common';
 import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(NotificationModule);
+  const app = await NestFactory.create(OtpModule);
   const rmqService = app.get<RmqService>(RmqService);
-  app.connectMicroservice<RmqOptions>(rmqService.getOptions('NOTIFICATION'));
+  app.connectMicroservice<RmqOptions>(rmqService.getOptions('OTP'));
   const configService = app.get(ConfigService);
   await app.startAllMicroservices();
-  await app.listen(configService.get<string | number>('PORT') || 3002);
+  await app.listen(configService.get<string | number>('PORT') || 3003);
 }
 bootstrap();

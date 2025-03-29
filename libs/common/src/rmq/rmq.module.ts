@@ -13,7 +13,6 @@ interface RmqModuleOptions {
 })
 export class RmqModule {
   static register({ name }: RmqModuleOptions): DynamicModule {
-    console.log('RmqModule.register', name);
     return {
       module: RmqModule,
       imports: [
@@ -26,9 +25,6 @@ export class RmqModule {
               );
               const queue = configService.get<string>(
                 `RABBIT_MQ_${name}_QUEUE`,
-              );
-              console.log(
-                `Creating queue: ${queue} with URLs: ${urls.join(', ')}`,
               );
               return {
                 transport: Transport.RMQ,

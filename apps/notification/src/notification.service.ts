@@ -21,23 +21,23 @@ export class NotificationService {
     to: string,
     subject: string,
     template: string,
-    context: { name: string },
+    data: any,
   ) {
     const tasks: Promise<void>[] = [];
 
     if (process.env.ENABLE_EMAIL_NOTIFICATION === 'true') {
-      const message = await this.renderTemplate(template, context);
+      const message = await this.renderTemplate(template, data);
       tasks.push(this.sendEmailNotification(to, subject, message));
     }
     if (process.env.ENABLE_DISCORD_NOTIFICATION === 'true') {
-      tasks.push(this.sendDiscordNotification(to, subject, context));
+      tasks.push(this.sendDiscordNotification(to, subject, data));
     }
     await Promise.all(tasks);
   }
 
   private async renderTemplate(
     template: string,
-    context: any,
+    data: Record<string, any>,
   ): Promise<string> {
     const templatePath = path.join(
       __dirname,
@@ -45,7 +45,7 @@ export class NotificationService {
       `${template}.ejs`,
     );
     try {
-      return await ejs.renderFile(templatePath, context);
+      return await ejs.renderFile(templatePath, { data } as ejs.Data);
     } catch (error) {
       this.logger.error('Error rendering email template', error);
       throw new Error('Error rendering email template');
@@ -68,7 +68,7 @@ export class NotificationService {
   private async sendDiscordNotification(
     to: string,
     subject: string,
-    context: { name: string },
+    data: any,
   ): Promise<void> {
     const discordChannelId = process.env.DISCORD_CHANNEL_ID;
     if (!discordChannelId) {
@@ -76,15 +76,26 @@ export class NotificationService {
       throw new Error('DISCORD_CHANNEL_ID is not defined');
     }
 
-    try {
-      await this.discordAdapter.send(
-        discordChannelId,
-        subject,
-        `**${to}**\n${context.name}`,
-      );
-    } catch (error) {
-      this.logger.error('Error sending Discord message', error);
-      throw new Error('Error sending Discord message');
+    let formattedData: string;
+    if (typeof data === 'string') {
+      formattedData = data;
+    } else if (Array.isArray(data)) {
+      formattedData = data.map((item) => `- ${item}`).join('\n');
+    } else if (typeof data === 'object') {
+      formattedData = Object.entries(data)
+        .map(([key, value]) => `**${key}:** ${String(value)}`)
+        .join('\n');
+
+      try {
+        await this.discordAdapter.send(
+          discordChannelId,
+          subject,
+          `**${to}**\n${formattedData}`,
+        );
+      } catch (error) {
+        this.logger.error('Error sending Discord message', error);
+        throw new Error('Error sending Discord message');
+      }
     }
   }
 }

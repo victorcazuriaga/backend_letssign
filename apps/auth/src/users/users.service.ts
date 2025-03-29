@@ -17,7 +17,7 @@ import { GetUserResponse } from './dtos/get-user.response';
 import { CreateCompanyRequest } from './dtos/create-company.request';
 import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
-import { NOTIFICATION_SERVICE } from './constants/service';
+import { NOTIFICATION_SERVICE, OTP_SERVICE } from './constants/service';
 
 @Injectable()
 export class UsersService {
@@ -129,7 +129,6 @@ export class UsersService {
 
     return userProfile;
   }
-
   async updateUser(userId, request: UpdateUserRequest) {
     const user = await this.usersRepository.findOneAndUpdate(userId, request);
     return user;
