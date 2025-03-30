@@ -49,13 +49,28 @@ export class UsersController {
     const userId: string = req.user._id;
     return await this.usersService.getProfile(userId);
   }
+  @Post('reset-password')
+  async requestPasswordReset(@Body() request: { email: string }): Promise<any> {
+    return this.usersService.resetPassword(request.email);
+  }
+  @Post('confirm-reset-password')
+  async confirmPasswordReset(
+    @Body() request: { email: string; newPassword: string; otp: string },
+  ): Promise<any> {
+    return this.usersService.confirmResetPassword(
+      request.email,
+      request.newPassword,
+      request.otp,
+    );
+  }
+
+  @Post('confirm-email')
+  async confirmEmail(@Body() request: { userId: string }): Promise<any> {
+    return this.usersService.confirmEmail(request.userId);
+  }
 
   @Post('validate')
   async validateUser(@Body() request: CreateUserRequest): Promise<any> {
     return this.usersService.validateUser(request.email, request.password);
-  }
-  @Post('test')
-  async test(@Body() request: { email: string; name: string }): Promise<any> {
-    return this.usersService.testSendNotification(request);
   }
 }

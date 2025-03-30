@@ -8,7 +8,7 @@ import { CompanyRepository } from './repositories/company.repository';
 import { CompanySchema } from './schemas/company.schema';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule, RmqModule } from '@app/common';
-import { NOTIFICATION_SERVICE } from './constants/service';
+import { NOTIFICATION_SERVICE, OTP_SERVICE } from './constants/service';
 @Module({
   imports: [
     ConfigModule,
@@ -18,6 +18,7 @@ import { NOTIFICATION_SERVICE } from './constants/service';
       { name: 'Company', schema: CompanySchema },
     ]),
     RmqModule.register({ name: NOTIFICATION_SERVICE }),
+    RmqModule.register({ name: OTP_SERVICE }),
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository, CompanyRepository],

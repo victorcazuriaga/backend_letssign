@@ -6,6 +6,7 @@ import {
   Inject,
   UnauthorizedException,
   UnprocessableEntityException,
+  Logger,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersRepository } from './repositories/users.repository';
@@ -15,19 +16,28 @@ import { CompanyRepository } from './repositories/company.repository';
 import { UpdateUserRequest } from './dtos/update-user.request';
 import { GetUserResponse } from './dtos/get-user.response';
 import { CreateCompanyRequest } from './dtos/create-company.request';
-import { ClientProxy, EventPattern } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
 import { NOTIFICATION_SERVICE, OTP_SERVICE } from './constants/service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly companyRepository: CompanyRepository,
     @Inject(NOTIFICATION_SERVICE)
     private readonly notificationClient: ClientProxy,
-    // private readonly authClient: ClientProxy,
+    @Inject(OTP_SERVICE)
+    private readonly otpClient: ClientProxy,
   ) {}
+
+  private generateLink(id: string): string {
+    const baseUrl = 'https://yourwebsite.com/welcome';
+    const link = `${baseUrl}?userId=${id}`;
+    return link;
+  }
 
   async createUser(request: CreateUserRequest) {
     await this.validateCreateUserRequest(request);
@@ -38,20 +48,18 @@ export class UsersService {
       role: request.role || 'member',
       status: request.status || 'pending',
     });
-    // await lastValueFrom(
-    //   this.notificationClient.emit('user.created', {
-    //     request,
-    //   }),
-    // );
+    const url: string = this.generateLink(user._id.toString());
+
+    await lastValueFrom(
+      this.notificationClient.emit('user.created', {
+        email: user.email,
+        name: user.name,
+        url,
+      }),
+    );
 
     Reflect.deleteProperty(user, 'password');
     return user;
-  }
-
-  @EventPattern('user.created')
-  handleUserCreated(): void {
-    console.log(`Received user_created event with data:}`);
-    return;
   }
 
   async createCompany(request: CreateCompanyRequest, userId: string) {
@@ -116,6 +124,11 @@ export class UsersService {
       { _id: userId },
       populateOptions,
     );
+    if (user.status !== 'active') {
+      throw new UnprocessableEntityException(
+        'User not confirmed or User suspend.',
+      );
+    }
     const userProfile: GetUserResponse = {
       _id: user._id.toString(),
       email: user.email,
@@ -133,12 +146,45 @@ export class UsersService {
     const user = await this.usersRepository.findOneAndUpdate(userId, request);
     return user;
   }
-  async testSendNotification(request): Promise<void> {
-    await lastValueFrom(
-      this.notificationClient.emit('user.created', {
-        email: request.email,
-        name: request.name,
+
+  async resetPassword(email: string) {
+    const findEmailUser = await this.usersRepository.findOne({ email });
+    if (findEmailUser) {
+      await lastValueFrom(
+        this.otpClient.emit('otp.request', {
+          email: findEmailUser.email,
+          eventName: 'reset.password',
+        }),
+      );
+    }
+    this.logger.log(findEmailUser);
+    return { status: 'success', message: 'Email sent successfully.' };
+  }
+  async confirmEmail(userId: string) {
+    const user = await this.usersRepository.findOne({
+      _id: new Types.ObjectId(userId),
+    });
+    if (!user) {
+      throw new UnprocessableEntityException('User not found.');
+    }
+    await this.usersRepository.findOneAndUpdate(user._id, { status: 'active' });
+    return { status: 'success', message: 'Email confirmed successfully.' };
+  }
+  async confirmResetPassword(email: string, newPassword: string, otp: string) {
+    const checkOtp: { status: string; message: string } = await lastValueFrom(
+      this.otpClient.send('otp.validate', {
+        email,
+        otp,
       }),
     );
+    if (checkOtp.status === 'success') {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.usersRepository.findOneAndUpdate(
+        { email },
+        { password: hashedPassword },
+      );
+      return { status: 'success', message: 'Password reset successfully.' };
+    }
+    return { status: 'error', message: 'Request new otp' };
   }
 }

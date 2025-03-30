@@ -49,7 +49,6 @@ export abstract class AbstractRepository<TDocument extends AbstractDocument> {
     const document = await this.model
       .findOne(filterQuery, {}, { lean: true })
       .select('-password');
-
     if (populateOptions) {
       await this.model.populate(document, populateOptions);
     }

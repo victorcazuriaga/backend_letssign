@@ -4,4 +4,5 @@ export interface INotificationAdapter {
 export interface IUserCreatedNotification {
   email: string;
   name: string;
+  url: string;
 }

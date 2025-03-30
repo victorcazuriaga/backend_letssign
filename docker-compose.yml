@@ -1,6 +1,71 @@
 version: '3'
 
 services:
+  auth:
+    build:
+      context: .
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    command: npm run start:dev auth
+    environment:
+      - MONGODB_URI=mongodb://mongodb-primary:27017
+      - RABBIT_MQ_URI=amqp://rabbitmq:5672
+    env_file:
+      - ./apps/auth/.env
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+      - rabbitmq
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3001:3001'
+  otp:
+    build:
+      context: .
+      dockerfile: ./apps/otp/Dockerfile
+      target: development
+    command: npm run start:dev otp
+    environment:
+      - MONGODB_URI=mongodb://mongodb-primary:27017
+      - RABBIT_MQ_URI=amqp://rabbitmq:5672
+    env_file:
+      - ./apps/otp/.env
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+      - notification
+      - rabbitmq
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3003:3003'
+  notification:
+    build:
+      context: .
+      dockerfile: ./apps/notification/Dockerfile
+      target: development
+    command: npm run start:dev notification
+    environment:
+      - MONGODB_URI=mongodb://mongodb-primary:27017
+      - RABBIT_MQ_URI=amqp://rabbitmq:5672
+    env_file:
+      - ./apps/notification/.env
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+      - rabbitmq
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3002:3002'
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:

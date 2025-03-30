@@ -15,12 +15,11 @@ export class NotificationController {
     @Payload() data: IUserCreatedNotification,
     @Ctx() context: RmqContext,
   ): Promise<void> {
-    const { email, name } = data;
     await this.notificationService.sendNotification(
-      email,
+      data.email,
       'Bem-Vindo !',
       'welcome',
-      { name },
+      data,
     );
     this.rmqService.ack(context);
   }

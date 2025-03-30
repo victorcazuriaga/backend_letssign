@@ -32,10 +32,10 @@ export class OtpService {
     return otp;
   }
 
-  async sendOtp(email: string) {
+  async sendOtp(email: string, eventName: string) {
     const otpCode = await this.saveOtp(email);
     await lastValueFrom(
-      this.notificationClient.emit('reset.password', { email, otpCode }),
+      this.notificationClient.emit(eventName, { email, otpCode }),
     );
   }
 

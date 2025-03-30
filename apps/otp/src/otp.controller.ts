@@ -18,14 +18,13 @@ export class OtpController {
 
   @EventPattern('otp.request')
   async handleGenerateOtp(
-    @Payload() data: { email: string },
+    @Payload() data: { email: string; eventName: string },
     @Ctx() context: RmqContext,
   ): Promise<void> {
     this.rmqService.ack(context);
-    await this.otpService.sendOtp(data.email);
+    await this.otpService.sendOtp(data.email, data.eventName);
   }
 
-  @Post()
   @MessagePattern('otp.validate')
   async handleOtpValidate(
     @Payload() data: { email: string; otp: string },
@@ -33,6 +32,14 @@ export class OtpController {
   ): Promise<{ status: string; message: string }> {
     const response = await this.otpService.validateOtp(data.email, data.otp);
     this.rmqService.ack(context);
+    return response;
+  }
+
+  @Post()
+  async validateOtp(
+    @Payload() data: { email: string; otp: string },
+  ): Promise<{ status: string; message: string }> {
+    const response = await this.otpService.validateOtp(data.email, data.otp);
     return response;
   }
 }

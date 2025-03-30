@@ -1,1 +1,2 @@
 export const NOTIFICATION_SERVICE = 'NOTIFICATION';
+export const OTP_SERVICE = 'OTP';
