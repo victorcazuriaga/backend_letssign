@@ -9,10 +9,22 @@ import { CompanySchema } from './schemas/company.schema';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule, RmqModule } from '@app/common';
 import { NOTIFICATION_SERVICE, OTP_SERVICE } from './constants/service';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtCookieAuthGuard } from '../guards/jwt-cookie-auth.guard';
+
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: './apps/auth/.env',
+    }),
     DatabaseModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: {
+        expiresIn: `${process.env.JWT_EXPIRATION}s`,
+      },
+    }),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: 'Company', schema: CompanySchema },
@@ -21,7 +33,12 @@ import { NOTIFICATION_SERVICE, OTP_SERVICE } from './constants/service';
     RmqModule.register({ name: OTP_SERVICE }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, UsersRepository, CompanyRepository],
+  providers: [
+    UsersService,
+    UsersRepository,
+    CompanyRepository,
+    JwtCookieAuthGuard,
+  ],
   exports: [UsersService],
 })
 export class UsersModule {}

@@ -10,9 +10,10 @@ import {
 import { CreateUserRequest } from './dtos/create-user.request';
 import { UsersService } from './users.service';
 import { UpdateUserRequest } from './dtos/update-user.request';
-import JwtAuthGuard from '../guards/jwt-auth.guard';
 import { GetUserResponse } from './dtos/get-user.response';
 import { CreateCompanyRequest } from './dtos/create-company.request';
+import { JwtCookieAuthGuard } from '../guards/jwt-cookie-auth.guard';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
 
 @Controller('auth/users')
 export class UsersController {
@@ -22,31 +23,31 @@ export class UsersController {
   async createUser(@Body() request: CreateUserRequest): Promise<any> {
     return await this.usersService.createUser(request);
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtCookieAuthGuard)
   @Post('company')
   async createCompany(
-    @Req() req: { user: { _id: string } },
+    @Req() req: { user: { userId: string } },
     @Body() request: CreateCompanyRequest,
   ): Promise<any> {
-    const userId: string = req.user._id;
+    const userId: string = req.user.userId;
     return this.usersService.createCompany(request, userId);
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtCookieAuthGuard)
   @Patch()
   async updateUser(
-    @Req() req: { user: { _id: string } },
+    @Req() req: { user: { userId: string } },
     @Body() request: UpdateUserRequest,
   ): Promise<any> {
-    const userId: string = req.user._id;
+    const userId: string = req.user.userId;
     return this.usersService.updateUser(userId, request);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtCookieAuthGuard)
   @Get()
   async getProfile(
-    @Req() req: { user: { _id: string } },
+    @Req() req: { user: { userId: string } },
   ): Promise<Partial<GetUserResponse>> {
-    const userId: string = req.user._id;
+    const userId: string = req.user.userId;
     return await this.usersService.getProfile(userId);
   }
   @Post('reset-password')
@@ -72,5 +73,13 @@ export class UsersController {
   @Post('validate')
   async validateUser(@Body() request: CreateUserRequest): Promise<any> {
     return this.usersService.validateUser(request.email, request.password);
+  }
+
+  // #TODO: Remove this endpoint in production
+  @Get('debug-sentry')
+  @SentryExceptionCaptured()
+  getError() {
+    const error = new Error('My first Sentry error!');
+    throw error;
   }
 }

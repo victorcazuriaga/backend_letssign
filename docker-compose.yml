@@ -1,6 +1,18 @@
 version: '3'
 
 services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - '80:80'
+    depends_on:
+      - auth
+      - notification
+      - otp
+    networks:
+      - nest_network
   auth:
     build:
       context: .
@@ -22,6 +34,8 @@ services:
       - /usr/src/app/node_modules
     ports:
       - '3001:3001'
+    networks:
+      - nest_network
   otp:
     build:
       context: .
@@ -44,6 +58,9 @@ services:
       - /usr/src/app/node_modules
     ports:
       - '3003:3003'
+
+    networks:
+      - nest_network
   notification:
     build:
       context: .
@@ -65,12 +82,15 @@ services:
       - /usr/src/app/node_modules
     ports:
       - '3002:3002'
-
+    networks:
+      - nest_network
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - '5672:5672'
       - '15672:15672'
+    networks:
+      - nest_network
   mongodb-primary:
     image: mongo:latest
     environment:
@@ -82,6 +102,8 @@ services:
       - 'mongodb_master_data:/data/db'
     ports:
       - '27017:27017'
+    networks:
+      - nest_network
 
   mongodb-secondary:
     image: mongo:latest
@@ -93,6 +115,8 @@ services:
       - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    networks:
+      - nest_network
 
   mongodb-arbiter:
     image: mongo:latest
@@ -104,7 +128,12 @@ services:
       - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    networks:
+      - nest_network
 
 volumes:
   mongodb_master_data:
     driver: local
+networks:
+  nest_network:
+    driver: bridge

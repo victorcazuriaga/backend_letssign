@@ -69,7 +69,9 @@ export class UsersService {
     if (existingCompany) {
       throw new UnprocessableEntityException('CNPJ already exists.');
     }
-    const user = await this.usersRepository.findOne({ _id: userId });
+    const user = await this.usersRepository.findOne({
+      _id: new Types.ObjectId(userId),
+    });
     if (!user) {
       throw new UnprocessableEntityException('User not found.');
     }
@@ -121,7 +123,7 @@ export class UsersService {
   async getProfile(userId: string): Promise<Partial<GetUserResponse>> {
     const populateOptions = { path: 'company' };
     const user: any = await this.usersRepository.findOne(
-      { _id: userId },
+      { _id: new Types.ObjectId(userId) },
       populateOptions,
     );
     if (user.status !== 'active') {
@@ -142,8 +144,11 @@ export class UsersService {
 
     return userProfile;
   }
-  async updateUser(userId, request: UpdateUserRequest) {
-    const user = await this.usersRepository.findOneAndUpdate(userId, request);
+  async updateUser(userId: string, request: UpdateUserRequest) {
+    const user = await this.usersRepository.findOneAndUpdate(
+      { _id: new Types.ObjectId(userId) },
+      request,
+    );
     return user;
   }
 
