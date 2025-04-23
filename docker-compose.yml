@@ -33,7 +33,7 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - '3001:3001'
+      - '3004:3004'
     networks:
       - nest_network
   otp:
@@ -89,6 +89,14 @@ services:
     ports:
       - '5672:5672'
       - '15672:15672'
+      - '5552:5552'
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_stream advertised_host localhost
+    command: >
+      sh -c "
+      rabbitmq-plugins enable --offline rabbitmq_stream &&
+      rabbitmq-plugins enable --offline rabbitmq_prometheus &&
+      rabbitmq-server"
     networks:
       - nest_network
   mongodb-primary:
@@ -128,6 +136,43 @@ services:
       - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
       - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    networks:
+      - nest_network
+  mongodb-exporter:
+    image: bitnami/mongodb-exporter:latest
+    environment:
+      - MONGODB_URI=mongodb://mongodb-primary:27017
+      - MONGODB_PASSWORD=password123
+    command:
+      - --log.level=info
+      - --web.listen-address=:9216
+      - --collector.collstats
+      - --collector.indexstats
+      - --collector.dbstats
+      - --collector.replicasetstatus
+      - --collector.topmetrics
+      - --collector.currentopmetrics
+    ports:
+      - '9216:9216'
+    networks:
+      - nest_network
+    depends_on:
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+    networks:
+      - nest_network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - '3000:3000'
     networks:
       - nest_network
 

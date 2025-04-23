@@ -1,3 +1,4 @@
+import '@app/common/sentry/instrument.ts';
 import { NestFactory } from '@nestjs/core';
 import { GlobalExceptionFilter, RmqService } from '@app/common';
 import { AuthModule } from './auth.module';
@@ -5,7 +6,6 @@ import { RmqOptions } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as cookieParser from 'cookie-parser';
-import '@app/common/sentry/instrument.ts';
 
 // #TODO: On Prod disable cors and set the origin to the frontend url
 async function bootstrap() {
@@ -15,6 +15,7 @@ async function bootstrap() {
   app.enableCors({
     credentials: true,
     origin: ['http://localhost:8000', '*'],
+    sameSite: 'None',
   });
   const rmqService = app.get<RmqService>(RmqService);
   app.connectMicroservice<RmqOptions>(rmqService.getOptions('AUTH', true));

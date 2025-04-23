@@ -8,12 +8,30 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from './users/users.module';
+import { MonitoringModule } from '@app/common/monitoring/monitoring.module';
 
 @Module({
   imports: [
     DatabaseModule,
     UsersModule,
     RmqModule,
+    MonitoringModule.forRoot({
+      serviceName: 'auth',
+      serviceVersion: '1.0.0',
+      serviceType: 'http',
+      metricsPath: '/metrics',
+      dependencies: {
+        mongodb: true,
+        rabbitmq: true,
+        services: [
+          { name: 'otp-service', url: 'http://localhost:3002/health/liveness' },
+          {
+            name: 'notification-service',
+            url: 'http://notification:3003/health/liveness',
+          },
+        ],
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({

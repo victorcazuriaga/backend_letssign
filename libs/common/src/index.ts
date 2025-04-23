@@ -4,3 +4,5 @@ export * from './database/abstract.schema';
 export * from './rmq/rmq.service';
 export * from './rmq/rmq.module';
 export * from './filters/global-exception.filter';
+export * from './health/health.module';
+export * from './health/health.controller';

@@ -8,11 +8,29 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { OtpSchema } from './schemas/otp.schema';
 import { DatabaseModule, RmqModule } from '@app/common';
 import { NOTIFICATION_SERVICE } from '../constants/service';
+import { MonitoringModule } from '@app/common/monitoring/monitoring.module';
 
 // TODO: Move env varibles to a common place
 @Module({
   imports: [
     DatabaseModule,
+    MonitoringModule.forRoot({
+      serviceName: 'otp',
+      serviceVersion: '1.0.0',
+      serviceType: 'event',
+      metricsPath: '/metrics',
+      dependencies: {
+        mongodb: true,
+        rabbitmq: true,
+        services: [
+          { name: 'auth-service', url: 'http://auth:3001/health/liveness' },
+          {
+            name: 'notification-service',
+            url: 'http://notification:3003/health/liveness',
+          },
+        ],
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
