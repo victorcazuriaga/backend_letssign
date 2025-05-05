@@ -2,15 +2,13 @@ FROM node:alpine As development
 
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache python3 make g++
-
 COPY package*.json ./
 
 RUN npm install
 
 COPY . .
 
-RUN npm run build auth
+RUN npm run build notification
 
 FROM node:alpine as production
 
@@ -27,4 +25,4 @@ COPY . .
 
 COPY --from=development /usr/src/app/dist ./dist
 
-CMD ["node", "dist/apps/auth/main"]
+CMD ["node", "dist/apps/notification/main"]

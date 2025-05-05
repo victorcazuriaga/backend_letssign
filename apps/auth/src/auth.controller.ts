@@ -1,5 +1,5 @@
 import { Controller, Post, Res, UseGuards } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
+import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';

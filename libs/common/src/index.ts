@@ -6,3 +6,5 @@ export * from './rmq/rmq.module';
 export * from './filters/global-exception.filter';
 export * from './health/health.module';
 export * from './health/health.controller';
+export * from './auth/auth.module';
+export * from './auth/jwt-auth.guard';
