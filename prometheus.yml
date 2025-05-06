@@ -15,5 +15,6 @@ scrape_configs:
             'host.docker.internal:3001',
             'host.docker.internal:3002',
             'host.docker.internal:3003',
+            'host.docker.internal:3004',
           ]
     metrics_path: '/metrics'

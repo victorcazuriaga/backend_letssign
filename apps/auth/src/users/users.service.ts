@@ -8,7 +8,7 @@ import {
   UnprocessableEntityException,
   Logger,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { UsersRepository } from './repositories/users.repository';
 import { CreateUserRequest } from './dtos/create-user.request';
 import { User } from './schemas/user.schema';
@@ -44,7 +44,7 @@ export class UsersService {
 
     const user = await this.usersRepository.create({
       ...request,
-      password: await bcrypt.hash(request.password, 10),
+      password: await argon2.hash(request.password),
       role: request.role || 'member',
       status: request.status || 'pending',
     });
@@ -108,7 +108,7 @@ export class UsersService {
     if (!user) {
       throw new UnauthorizedException('Credentials are not valid.');
     }
-    const passwordIsValid = await bcrypt.compare(password, user.password);
+    const passwordIsValid = await argon2.verify(user.password, password);
     if (!passwordIsValid) {
       throw new UnauthorizedException('Credentials are not valid.');
     }
@@ -183,7 +183,7 @@ export class UsersService {
       }),
     );
     if (checkOtp.status === 'success') {
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const hashedPassword = await argon2.hash(newPassword);
       await this.usersRepository.findOneAndUpdate(
         { email },
         { password: hashedPassword },
